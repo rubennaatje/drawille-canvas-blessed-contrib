@@ -2,9 +2,14 @@ var Canvas = require('drawille-blessed-contrib');
 var bresenham = require('bresenham');
 var glMatrix = require('gl-matrix');
 var x256 = require('x256');
+var path = require('svg-path-properties');
 var mat2d = glMatrix.mat2d;
 var vec2 = glMatrix.vec2;
-
+var kleur = require('kleur');
+var chalk
+//temporary
+var numPoints = 400;
+var properties = path.svgPathProperties("M56.2711 5.20879C53.5525 0.443239 56.0215 -1.04062 59.2662 0.709214C62.511 2.45905 102.946 28.2067 108.437 31.9563C113.928 35.706 117.822 39.7886 121.166 43.7052C126.574 50.0376 146.875 74.5354 151.118 79.4519C153.175 81.8347 155.332 84.1295 158.981 85.2304C159.637 85.4284 160.345 85.5634 161.102 85.7014C163.848 86.2013 169.708 87.9371 173.582 94.4505C177.991 101.867 178.49 104.95 177.742 114.032C177.309 119.287 177.886 124.351 179.738 127.031C184.231 133.53 193.641 147.056 200.039 155.944C207.777 166.693 215.015 181.692 218.01 191.691C221.005 201.69 254.701 320.179 256.448 327.179C258.195 334.178 259.992 335.802 251.581 340.802C247.587 343.177 244.122 346.517 245.591 353.051C246.714 358.051 254.207 376.548 246.339 382.049C244.5 383.335 203.529 411.103 195.921 416.045C191.303 419.045 184.969 416.832 182.443 412.421C179.917 408.011 179.344 402.087 186.062 398.297C191.303 395.34 194.299 393.672 208.775 385.007C212.308 382.892 214.241 378.119 211.603 372.174C209.274 366.925 204.926 353.736 202.785 347.677C197.793 333.553 193.561 304.657 190.18 286.182C188.807 278.683 183.691 271.184 173.208 270.184C170.899 269.964 163.224 269.434 156.609 269.684C150.15 269.929 138.2 273.937 132.149 289.932C127.656 301.806 118.421 325.554 110.933 345.427C105.105 360.893 91.2146 356.676 89.093 355.051C84.2029 351.306 71.6902 342.177 61.5126 356.551C56.6455 363.425 46.5368 380.174 40.6713 389.298C34.1249 399.482 26.6939 392.548 6.35176 377.299C-2.2783 370.83 -0.0289366 357.926 1.23502 353.051C7.05862 330.587 17.8332 317.43 28.8154 307.93C39.7977 298.431 55.2727 287.182 73.7428 280.683C92.213 274.183 97.796 268.693 102.946 259.185C117.297 232.687 124.286 221.063 122.789 208.065C121.291 195.066 105.941 169.193 102.696 157.944C100.317 149.695 98.4739 128.739 98.0546 111.199C97.9807 108.116 97.4565 104.858 103.445 105.7C112.93 107.032 110.312 99.3681 108.936 97.3673C101.947 87.2012 98.9232 82.2717 93.2114 72.2026C86.9715 61.2036 58.2679 8.70847 56.2711 5.20879Z");
 
 function Context(width, height, canvasClass) { 
   var canvasClass = canvasClass || Canvas;
@@ -13,6 +18,23 @@ function Context(width, height, canvasClass) {
   this._matrix = mat2d.create();
   this._stack = [];
   this._currentPath = [];
+  this._trackPath = [];
+  this.width = width;
+  this.height = height;
+
+  //remove
+  this.carpercentage = 0;
+  
+  for (var i=0; i < numPoints; i++){
+    var p = properties.getPointAtLength( i * properties.getTotalLength() / numPoints);
+    var x=Math.round(p.x * 0.3 + 3), y = Math.round(p.y * 0.3 + 3);
+    addPoint(this._matrix,this._trackPath, x, y, true);
+}
+  this._currentPath = this._trackPath;
+  this.strokeStyle = 'white'; 
+  this.fillText(width, 100,100)
+  this.stroke();
+  this.save();
 }
 
 exports.colors = {
@@ -181,6 +203,77 @@ Context.prototype.stroke = function stroke() {
     }
   }
 };
+
+Context.prototype.clear = function(w ,h) {
+  this.clearRect(0,0,w,h);
+}
+
+
+Context.prototype.loadFromSVG = function() {
+  this.clearRect(0,0,this.width,this.height);
+  
+  
+  this._currentPath = this._trackPath;
+  this.strokeStyle = 'white'; 
+  this.stroke();
+  
+  //draw the car at 33 percent
+  this.drawCar({carpercentage:this.carpercentage, number: 14, color:'red'}); 
+  this.drawCar({carpercentage:this.carpercentage /2.10, number: 21, color:'red'});  
+  this.drawCar({carpercentage:this.carpercentage /3.12, number: 34, color:'red'});  
+  this.drawCar({carpercentage:this.carpercentage /1.14, number: 12, color:'red'});  
+  this.drawCar({carpercentage:this.carpercentage /1.3, number: 99, color:'red'});  
+  this.drawCar({carpercentage:this.carpercentage /1.02, number: 66, color:'red'});  
+  this.drawCar({carpercentage:this.carpercentage /1.22, number: 55, color:'yellow'});  
+  this.drawCar({carpercentage:this.carpercentage /1.29, number: 45, color:'green'});  
+  this.drawCar({carpercentage:this.carpercentage /1.09, number: 34, color:'blue'});  
+  
+  this.carpercentage += 0.1;
+  if(this.carpercentage >= 100){
+    this.carpercentage = 0;
+  }
+}
+
+Context.prototype.drawCar = function(obj){
+  var section = (this._trackPath.length / 100) * obj.carpercentage;
+  
+  var pointA = Math.floor(section);
+  var pointB = pointA + 1;
+  var leftPercentage = section - pointA;
+
+  var p1 = this._trackPath[pointA];
+  var p2 = this._trackPath[pointB];
+  
+  this.beginPath();
+  
+  this.strokeStyle = obj.color|'red'; 
+  
+  // this.stroke();
+  
+  var pixels = bresenham(p1.point[0],p1.point[1],p2.point[0],p2.point[1]);
+  this.beginPath();
+  var precisepos = pixels[Math.round(leftPercentage * pixels.length)];
+  if(pixels.length = 1){
+    precisepos = pixels[0];
+  }
+  this.strokeStyle = obj.color; 
+  //hack because this has encapsulated the c.set function this is the only way to do it.
+  this.lineTo(precisepos.x,precisepos.y);
+  this.lineTo(precisepos.x,precisepos.y);
+  this.stroke();
+  this.beginPath();
+  //draw the numbers
+
+  //draw lines to the numbers
+  var textpos =   {x: precisepos.x + 10, y: precisepos.y + 5 }; 
+  this.strokeStyle = 'yellow';
+  this.lineTo(precisepos.x + 2,precisepos.y + 2);
+  this.lineTo(textpos.x - 2,textpos.y - 2);
+  this.fillStyle = obj.color;
+  this.fillText((obj.number + ""),textpos.x,textpos.y)
+  this.stroke();
+  this.beginPath();
+}
 
 function addPoint(m, p, x, y, s) {
   var v = vec2.transformMat2d(vec2.create(), vec2.fromValues(x, y), m);

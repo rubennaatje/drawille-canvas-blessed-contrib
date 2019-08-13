@@ -24,7 +24,9 @@
     "ansi-term": ">=0.0.2",
     "bresenham": "0.0.3",
     "drawille-blessed-contrib": ">=0.0.1",
-    "x256": ">=0.0.1",
-    "gl-matrix": "^2.1.0"
+    "gl-matrix": "^2.1.0",
+    "kleur": "^3.0.3",
+    "svg-path-properties": "^0.5.2",
+    "x256": ">=0.0.1"
   }
 }
